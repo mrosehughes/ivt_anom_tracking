@@ -34,10 +34,10 @@ lat_slab = np.array([ 50.00,  48.75,  46.25,  45.50,  44.50,  43.25,  42.00 ],dt
 caseID = 'slabtest0'
 
 # Where to store output files?
-dirOUT = data_dir+"slabs/"+caseID+"/"
+dirOUT = "/Projects/HydroMet/dswales/CMIP6/slabs/"+caseID+"/"
 if(not os.path.isdir(dirOUT)): os.mkdir(dirOUT)
 
-debug    = False#True
+debug    = True#True
 doPlot   = True#True
 showPlot = False#True
 ##########################################################################################
