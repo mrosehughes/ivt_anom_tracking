@@ -43,6 +43,7 @@ if (npts_slab != len(lon_slab)):
 
 # Get file list
 files  = os.listdir(data_dir)
+if (debug): files = [files[0]]
 nfiles = len(files)
 
 # Process each file
@@ -92,7 +93,8 @@ for ifile in range(0,nfiles):
      
      # Plot the locations of the slabs on map?
      if (doPlot):
-          plotOUT = dirOUT+"slab."+modelname+".png"
+          if(not os.path.isdir(dirOUT+"plots/")): os.mkdir(dirOUT+"plots/")
+          plotOUT = dirOUT+"plots/slab."+modelname+".png"
           print("Slab domain plot: ",plotOUT)
           fig=plt.figure(figsize=(8, 6))
           m = Basemap(llcrnrlon=-130.,llcrnrlat=20.,urcrnrlon=-110.,urcrnrlat=52.)#,projection='merc')
