@@ -21,15 +21,6 @@ data_dir = "/Projects/HydroMet/dswales/CMIP6/IVT/"
 lon_slab = np.array([233.00, 234.25, 235.50, 235.50, 235.50, 235.50, 235.50 ],dtype='float')
 lat_slab = np.array([ 50.00,  48.75,  46.25,  45.50,  44.50,  43.25,  42.00 ],dtype='float')
 
-# Configuration from WRF 25km data.
-#lon_slab = np.array([-127.00, -126.25, -125.50, -124.75, -124.60, -124.40, -124.20,\
-#            -124.00, -124.00, -124.10, -124.15, -124.00, -124.15, -124.25,\
-#            -124.25, -124.25, -124.25, -124.00, -124.25, -124.00, -124.00,\
-#            -124.00, -123.75, -123.50, -123.00, -122.50, -122.00, -122.00,\
-#            -121.50, -121.00, -120.50, -120.50, -119.00, -118.00, -117.00,\
-#                     -117.00, -117.00, -116.50],dtype='float')+360
-#lat_slab = 50. - np.linspace(0,len(lon_slab),num=len(lon_slab))*0.5
-
 # ID for slab configuration? (to create output file directory)
 caseID = 'slabtest0'
 
