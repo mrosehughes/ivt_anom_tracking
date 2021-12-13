@@ -13,7 +13,11 @@ def closest(arry, K):
      return (np.abs(arry - K)).argmin()
 
 ##########################################################################################
+debug    = False#True
+doPlot   = False#True
+showPlot = False#True
 ##########################################################################################
+
 # Where are the CMIP6 IVT files to process?
 data_dir = "/Projects/HydroMet/dswales/CMIP6/IVT/"
 
@@ -37,10 +41,6 @@ if(not os.path.isdir(dirOUT)): os.mkdir(dirOUT)
 nbins     = 150
 ivtRange  = [0,1500] # (kg/m/s)
 
-debug    = False#True
-doPlot   = False#True
-showPlot = False#True
-
 ##########################################################################################
 # NO CHANGES NEEDED BELOW
 ##########################################################################################
@@ -62,15 +62,21 @@ for ifile in range(0,nfiles):
      nlat  = data.lat.size
      ntime = data.time.size
 
+     # Indices (cool_season) for (mi) months
+     mi          = [1,2,3,10,11,12]
+     cool_season = np.array([],dtype='int')
+     for im in range(0,5):
+          cool_season =  np.append(cool_season, np.where(data.time.dt.month == mi[im]))
+
      # For debug mode, only need geodata for slab construction/plotting.
      if (debug): ntime=1
      
      # Find the nearest model grid points for requested slab, pull out IVT.
-     loni    = np.empty((npts_slab),dtype='int')
-     lati    = np.empty((npts_slab),dtype='int')
-     IVTslab = np.empty((ntime,npts_slab),dtype='float')
-     PDFslab = np.empty((npts_slab,nbins),dtype='float')
-     CDFslab = np.empty((npts_slab,nbins),dtype='float')
+     loni    = np.empty((npts_slab),       dtype='int')
+     lati    = np.empty((npts_slab),       dtype='int')
+     IVTslab = np.empty((ntime,npts_slab), dtype='float')
+     PDFslab = np.empty((npts_slab,nbins), dtype='float')
+     CDFslab = np.empty((npts_slab,nbins), dtype='float')
      for islab in range(0,npts_slab):
           loni[islab] = closest(data.lon.values, lon_slab[islab])
           lati[islab] = closest(data.lat.values, lat_slab[islab])
@@ -84,8 +90,8 @@ for ifile in range(0,nfiles):
                          print("WARNING: Redundant slab points have been found.")
                          print("Current slab index: "+str(islab)+" is identical to previous slab index: "+str(itest))
                          print("["+str(data.lon[loni[islab]].values)+","+str(data.lat[lati[islab]].values)+"]")
-          # Create PDF/CDFs of IVT.
-          p, bins = np.histogram(IVTslab[:,islab], bins=nbins, range=ivtRange)
+          # Create PDF/CDFs of IVT (cool-season (ONDJFM) only).
+          p, bins = np.histogram(IVTslab[cool_season,islab], bins=nbins, range=ivtRange)
           CDFslab[islab,:] = np.cumsum(p)/np.sum(p)
           PDFslab[islab,:] = p
 
@@ -93,8 +99,8 @@ for ifile in range(0,nfiles):
      if (not debug):
           fileOUT = dirOUT+files[ifile]
           print("Output slab file: ",fileOUT)
-          ivtOUT = xr.Dataset({"IVT": (("time", "slab"),IVTslab)},        \
-                              coords = {"time": data.time[0:ntime].values,\
+          ivtOUT = xr.Dataset({"IVT": (("time", "slab"),IVTslab)},  \
+                              coords = {"time": data.time.values,\
                                         "slab": np.linspace(1,npts_slab,npts_slab)})
           latOUT = xr.Dataset({"lat":(("slab"),data.lat[lati].values)},   \
                               coords = {"slab": np.linspace(1,npts_slab,npts_slab)})
@@ -102,10 +108,10 @@ for ifile in range(0,nfiles):
                               coords = {"slab": np.linspace(1,npts_slab,npts_slab)})
           cdfOUT = xr.Dataset({"CDF": (("slab", "bin"),CDFslab)},        \
                               coords = {"slab": np.linspace(1,npts_slab,npts_slab),\
-                                        "bin":  np.linspace(1,nbins,nbins)})
+                                        "bin":  0.5*(bins[0:nbins]+bins[1:nbins+1])})
           pdfOUT = xr.Dataset({"PDF": (("slab", "bin"),PDFslab)},        \
                               coords = {"slab": np.linspace(1,npts_slab,npts_slab),\
-                                        "bin":  np.linspace(1,nbins,nbins)})
+                                        "bin":  0.5*(bins[0:nbins]+bins[1:nbins+1])})
           xr.merge([ivtOUT,latOUT,lonOUT,cdfOUT,pdfOUT]).to_netcdf(fileOUT)
      
      # Plot the locations of the slabs on map?
