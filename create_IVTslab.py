@@ -17,6 +17,11 @@ def closest(arry, K):
 # Where are the CMIP6 IVT files to process?
 data_dir = "/Projects/HydroMet/dswales/CMIP6/IVT/"
 
+# Use all of the files.
+files  = os.listdir(data_dir)
+if (debug): files = [files[0]]
+nfiles = len(files)
+
 # What are the lon/lats for the slab?
 lon_slab = np.array([233.00, 234.25, 235.50, 235.50, 235.50, 235.50, 235.50 ],dtype='float')
 lat_slab = np.array([ 50.00,  48.75,  46.25,  45.50,  44.50,  43.25,  42.00 ],dtype='float')
@@ -28,9 +33,14 @@ caseID = 'slabtest0'
 dirOUT = "/Projects/HydroMet/dswales/CMIP6/slabs/"+caseID+"/"
 if(not os.path.isdir(dirOUT)): os.mkdir(dirOUT)
 
-debug    = True#True
-doPlot   = True#True
+# IVT PDF configuration. (Written to output slab file)
+nbins     = 150
+ivtRange  = [0,1500] # (kg/m/s)
+
+debug    = False#True
+doPlot   = False#True
 showPlot = False#True
+
 ##########################################################################################
 # NO CHANGES NEEDED BELOW
 ##########################################################################################
@@ -40,11 +50,6 @@ npts_slab = len(lat_slab)
 if (npts_slab != len(lon_slab)):
      print("ERROR: Slab lon/lat size are inconsistent.")
      exit()
-
-# Get file list
-files  = os.listdir(data_dir)
-if (debug): files = [files[0]]
-nfiles = len(files)
 
 # Process each file
 for ifile in range(0,nfiles):
@@ -64,6 +69,8 @@ for ifile in range(0,nfiles):
      loni    = np.empty((npts_slab),dtype='int')
      lati    = np.empty((npts_slab),dtype='int')
      IVTslab = np.empty((ntime,npts_slab),dtype='float')
+     PDFslab = np.empty((npts_slab,nbins),dtype='float')
+     CDFslab = np.empty((npts_slab,nbins),dtype='float')
      for islab in range(0,npts_slab):
           loni[islab] = closest(data.lon.values, lon_slab[islab])
           lati[islab] = closest(data.lat.values, lat_slab[islab])
@@ -77,6 +84,10 @@ for ifile in range(0,nfiles):
                          print("WARNING: Redundant slab points have been found.")
                          print("Current slab index: "+str(islab)+" is identical to previous slab index: "+str(itest))
                          print("["+str(data.lon[loni[islab]].values)+","+str(data.lat[lati[islab]].values)+"]")
+          # Create PDF/CDFs of IVT.
+          p, bins = np.histogram(IVTslab[:,islab], bins=nbins, range=ivtRange)
+          CDFslab[islab,:] = np.cumsum(p)/np.sum(p)
+          PDFslab[islab,:] = p
 
      # Create output file
      if (not debug):
@@ -89,7 +100,13 @@ for ifile in range(0,nfiles):
                               coords = {"slab": np.linspace(1,npts_slab,npts_slab)})
           lonOUT = xr.Dataset({"lon":(("slab"),data.lon[loni].values)},   \
                               coords = {"slab": np.linspace(1,npts_slab,npts_slab)})
-          xr.merge([ivtOUT,latOUT,lonOUT]).to_netcdf(fileOUT)
+          cdfOUT = xr.Dataset({"CDF": (("slab", "bin"),CDFslab)},        \
+                              coords = {"slab": np.linspace(1,npts_slab,npts_slab),\
+                                        "bin":  np.linspace(1,nbins,nbins)})
+          pdfOUT = xr.Dataset({"PDF": (("slab", "bin"),PDFslab)},        \
+                              coords = {"slab": np.linspace(1,npts_slab,npts_slab),\
+                                        "bin":  np.linspace(1,nbins,nbins)})
+          xr.merge([ivtOUT,latOUT,lonOUT,cdfOUT,pdfOUT]).to_netcdf(fileOUT)
      
      # Plot the locations of the slabs on map?
      if (doPlot):
