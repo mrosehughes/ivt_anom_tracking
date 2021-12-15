@@ -13,9 +13,9 @@ def closest(arry, K):
      return (np.abs(arry - K)).argmin()
 
 ##########################################################################################
-debug    = False#True
-doPlot   = False#True
-showPlot = False#True
+debug    = True
+doPlot   = True
+showPlot = True
 ##########################################################################################
 
 # Where are the CMIP6 IVT files to process?
@@ -24,7 +24,7 @@ lsmsk_dir = "/Projects/HydroMet/mhughes/CMIP6IVTdataout/landmasks/"
 
 # Use all of the files.
 files  = os.listdir(data_dir)
-if (debug): files = [files[0]]
+#if (debug): files = [files[0]]
 nfiles = len(files)
 
 # What are the lon/lats for the slab?
@@ -98,13 +98,15 @@ for ifile in range(0,nfiles):
      
      # Find the nearest model grid points for requested slab, pull out IVT.
      loni    = np.empty((npts_slab),       dtype='int')
+     loniu   = np.empty((npts_slab),       dtype='int')
      lati    = np.empty((npts_slab),       dtype='int')
      IVTslab = np.empty((ntime,npts_slab), dtype='float')
      PDFslab = np.empty((npts_slab,nbins), dtype='float')
      CDFslab = np.empty((npts_slab,nbins), dtype='float')
      for islab in range(0,npts_slab):
-          loni[islab] = closest(data.lon.values, lon_slab[islab])
-          lati[islab] = closest(data.lat.values, lat_slab[islab])
+          loni[islab]  = closest(data.lon.values, lon_slab[islab])
+          lati[islab]  = closest(data.lat.values, lat_slab[islab])
+          loniu[islab] = loni[islab]
           # Check to ensure that slab-point is over ocean, if no then nudge west.
           lsmsk_local = lsmsk[closest(lat_lsmsk,lat_slab[islab]),closest(lon_lsmsk,lon_slab[islab])]
           if (lsmsk_local > 50):
@@ -161,6 +163,8 @@ for ifile in range(0,nfiles):
           m.drawcoastlines()
           m.drawcountries()
           m.drawstates()
+          x,y = m(data.lon[loniu].values-360,data.lat[lati].values)
+          m.plot(x,y, 'ro', markersize=4)
           x,y = m(data.lon[loni].values-360,data.lat[lati].values)
           m.plot(x,y, 'bo', markersize=4)
           plt.savefig(plotOUT)
