@@ -111,8 +111,8 @@ for ifile in range(0,nfiles):
                print("------------------------------------------------------------------------------------------")
                print("WARNING: The closest "+modelname+" grid-point is mostly over land. Moving West...")
                print("Land-fraction = ",lsmsk_local)
-               print("Latitude      = ",closest(lat_lsmsk,lat_slab[islab]))
-               print("Longitude     = ",closest(lon_lsmsk,lon_slab[islab]))
+               print("Latitude      = ",data.lat[closest(data.lat.values,lat_slab[islab])].values)
+               print("Longitude     = ",data.lon[closest(data.lon.values,lon_slab[islab])].values)
                loni[islab] = loni[islab]-1
           
           IVTslab[:,islab] = data["IVT"][0:ntime, lati[islab], loni[islab]].values
