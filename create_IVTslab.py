@@ -19,7 +19,8 @@ showPlot = False#True
 ##########################################################################################
 
 # Where are the CMIP6 IVT files to process?
-data_dir = "/Projects/HydroMet/dswales/CMIP6/IVT/"
+data_dir  = "/Projects/HydroMet/dswales/CMIP6/IVT/"
+lsmsk_dir = "/Projects/HydroMet/mhughes/CMIP6IVTdataout/landmasks/"
 
 # Use all of the files.
 files  = os.listdir(data_dir)
@@ -51,6 +52,12 @@ if (npts_slab != len(lon_slab)):
      print("ERROR: Slab lon/lat size are inconsistent.")
      exit()
 
+# Landmask files
+lsmsk_file_list = []
+for lsmskfiles in os.listdir(lsmsk_dir):
+     if lsmskfiles.endswith(".nc"):
+          lsmsk_file_list.append(lsmskfiles)
+     
 # Process each file
 for ifile in range(0,nfiles):
      print("CMIP6 file:       ",data_dir+files[ifile])
@@ -62,6 +69,24 @@ for ifile in range(0,nfiles):
      nlat  = data.lat.size
      ntime = data.time.size
 
+     # Search for landmask file
+     found_lsmask_file = False
+     for file_lsmsk in lsmsk_file_list:
+          if modelname in file_lsmsk:
+               lsmsk_file        = lsmsk_dir + file_lsmsk
+               found_lsmask_file = True
+     if (not found_lsmask_file):
+          print("ERROR: No landmask file found for "+modelname+" Skipping...")
+          break
+     else:
+          print("lsmsk_file:       ",lsmsk_file)
+
+     # Read in landmask file
+     data_lsmsk = xr.open_dataset(lsmsk_file)
+     lat_lsmsk = data_lsmsk.lat.values
+     lon_lsmsk = data_lsmsk.lon.values
+     lsmsk     = data_lsmsk.sftlf.values
+     
      # Indices (cool_season) for (mi) months
      mi          = [1,2,3,10,11,12]
      cool_season = np.array([],dtype='int')
@@ -80,6 +105,16 @@ for ifile in range(0,nfiles):
      for islab in range(0,npts_slab):
           loni[islab] = closest(data.lon.values, lon_slab[islab])
           lati[islab] = closest(data.lat.values, lat_slab[islab])
+          # Check to ensure that slab-point is over ocean, if no then nudge west.
+          lsmsk_local = lsmsk[closest(lat_lsmsk,lat_slab[islab]),closest(lon_lsmsk,lon_slab[islab])]
+          if (lsmsk_local > 50):
+               print("------------------------------------------------------------------------------------------")
+               print("WARNING: The closest "+modelname+" grid-point is mostly over land. Moving West...")
+               print("Land-fraction = ",lsmsk_local)
+               print("Latitude      = ",closest(lat_lsmsk,lat_slab[islab]))
+               print("Longitude     = ",closest(lon_lsmsk,lon_slab[islab]))
+               loni[islab] = loni[islab]-1
+          
           IVTslab[:,islab] = data["IVT"][0:ntime, lati[islab], loni[islab]].values
           # Add check/warning for cases when the provided slab has redundant points (e.g. in
           # the case when the slab requested is on a finer grid than the CMIP6 data)
@@ -90,7 +125,9 @@ for ifile in range(0,nfiles):
                          print("WARNING: Redundant slab points have been found.")
                          print("Current slab index: "+str(islab)+" is identical to previous slab index: "+str(itest))
                          print("["+str(data.lon[loni[islab]].values)+","+str(data.lat[lati[islab]].values)+"]")
-          # Create PDF/CDFs of IVT (cool-season (ONDJFM) only).
+
+     # Create PDF/CDFs of IVT (cool-season (ONDJFM) only). 
+     if (not debug):
           p, bins = np.histogram(IVTslab[cool_season,islab], bins=nbins, range=ivtRange)
           CDFslab[islab,:] = np.cumsum(p)/np.sum(p)
           PDFslab[islab,:] = p
