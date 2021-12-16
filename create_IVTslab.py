@@ -15,7 +15,7 @@ def closest(arry, K):
 ##########################################################################################
 debug    = True
 doPlot   = True
-showPlot = True
+showPlot = False
 ##########################################################################################
 
 # Where are the CMIP6 IVT files to process?
@@ -27,15 +27,34 @@ files  = os.listdir(data_dir)
 #if (debug): files = [files[0]]
 nfiles = len(files)
 
+# ID for slab configuration? (to create output file directory)
+#caseID = 'slabtest0'
 # What are the lon/lats for the slab?
-lon_slab = np.array([233.00, 234.25, 235.50, 235.50, 235.50, 235.50, 235.50 ],dtype='float')
-lat_slab = np.array([ 50.00,  48.75,  46.25,  45.50,  44.50,  43.25,  42.00 ],dtype='float')
+#lon_slab = np.array([233.00, 234.25, 235.50, 235.50, 235.50, 235.50, 235.50 ],dtype='float')
+#lat_slab = np.array([ 50.00,  48.75,  46.25,  45.50,  44.50,  43.25,  42.00 ],dtype='float')
 
 # ID for slab configuration? (to create output file directory)
-caseID = 'slabtest0'
+caseID = 'slabtest1' #extend south and start moving east
+# What are the lon/lats for the slab?
+lon_slab = np.array([233.00, 234.25, 235.50, 235.50, 235.50, 235.50, 235.50,\
+                     235.50, 236.00, 236.00, 236.50, 236.50, 237.00, 237.00,\
+                     237.50, 237.50, 238.00, 238.00, 238.50, 238.50, 239.00],dtype='float')
+lat_slab = np.array([ 50.00, 49.00, 48.00, 47.00, 46.00, 45.00, 44.00, \
+                      43.00, 42.00, 41.00, 40.00, 39.00, 38.00, 37.00, \
+                      36.00, 35.00, 34.00, 33.00, 32.00, 31.00, 30.00 ],dtype='float')
+
+# ID for slab configuration? (to create output file directory)
+#caseID = 'slabtest2' #extend south and start moving east
+# What are the lon/lats for the slab?
+#lon_slab = np.array([232.00, 234.25, 235.50, 235.50, 235.50, 235.50, 235.50,\
+#                     235.50, 235.50, 235.50, 235.50, 236.00, 236.00, 236.50,\
+#                     237.00, 237.50, 238.00, 238.50, 239.00, 239.50, 240.00],dtype='float')
+#lat_slab = np.array([ 50.00, 49.00, 48.00, 47.00, 46.00, 45.00, 44.00, \
+#                      43.00, 42.00, 41.00, 40.00, 39.00, 38.00, 37.00, \
+#                      36.00, 35.00, 34.00, 33.00, 32.00, 31.00, 30.00 ],dtype='float')
 
 # Where to store output files?
-dirOUT = "/Projects/HydroMet/dswales/CMIP6/slabs/"+caseID+"/"
+dirOUT = "/Projects/HydroMet/mhughes/CMIP6IVTdataout/slabs/"+caseID+"/"
 if(not os.path.isdir(dirOUT)): os.mkdir(dirOUT)
 
 # IVT PDF configuration. (Written to output slab file)
