@@ -15,7 +15,7 @@ def closest(arry, K):
 ##########################################################################################
 debug    = True
 doPlot   = True
-showPlot = False
+showPlot = True
 ##########################################################################################
 
 # Where are the CMIP6 IVT files to process?
