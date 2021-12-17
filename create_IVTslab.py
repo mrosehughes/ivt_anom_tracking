@@ -130,15 +130,18 @@ for ifile in range(0,nfiles):
           # Check to ensure that slab-point is over ocean, if no then nudge west.
           lsmsk_local = lsmsk[closest(lat_lsmsk,lat_slab[islab]),closest(lon_lsmsk,lon_slab[islab])]
           if (lsmsk_local > 50):
-               print("------------------------------------------------------------------------------------------")
-               print("WARNING(1): The closest "+modelname+" grid-point is mostly over land. Moving West...")
-               print("Land-fraction = ",lsmsk_local)
-               print("Latitude      = ",data.lat[closest(data.lat.values,lat_slab[islab])].values)
-               print("Longitude     = ",data.lon[closest(data.lon.values,lon_slab[islab])].values)
-               print("------------------------------------------------------------------------------------------")
+               print("    ------------------------------------------------------------------------------------------")
+               print("    WARNING(1): The closest "+modelname+" grid-point is mostly over land. Moving West...")
+               print("    Land-fraction = ",lsmsk_local)
+               print("    Latitude      = ",data.lat[closest(data.lat.values,lat_slab[islab])].values)
+               print("    Longitude     = ",data.lon[closest(data.lon.values,lon_slab[islab])].values)
+               print("    ------------------------------------------------------------------------------------------")
                loni[islab] = loni[islab]-1
           # Extract IVT for slab point.
           IVTslab[:,islab] = data["IVT"][0:ntime, lati[islab], loni[islab]].values
+     print("Number of slabs points = ",str(npts_slab))
+     print("   lat_indices: ",lati)
+     print("   lon_indices: ",loni)
 
      # Sanitize the slab (Remove excessive points, filter by latitude uniqueness)
      unique_lats  = np.array([lati[0]], dtype='int')
@@ -151,16 +154,19 @@ for ifile in range(0,nfiles):
           else:
                subset_slab = True
                si = np.where(lati[islab] == unique_lats)[0]
-               print("------------------------------------------------------------------------------------------")
-               print("WARNING(2): Redundant slab points have been found. Removing from slab..." )
-               print("Slab index: "+str(islab)+" has the same latitude as: "+str(si[0]))
-               print("[" + str(data.lat[lati[islab]].values) + "][" + str(data.lat[unique_lats[si[0]]].values) + "]")
-               print("------------------------------------------------------------------------------------------")
+               print("    ------------------------------------------------------------------------------------------")
+               print("    WARNING(2): Redundant slab points have been found. Removing from slab..." )
+               print("    Slab index: "+str(islab)+" has the same latitude as: "+str(si[0]))
+               print("    [" + str(data.lat[lati[islab]].values) + "][" + str(data.lat[unique_lats[si[0]]].values) + "]")
+               print("    ------------------------------------------------------------------------------------------")
      if subset_slab:
           loni      = loni[unique_latsi]
           lati      = lati[unique_latsi]
           IVTslab   = IVTslab[:,unique_latsi]
           npts_slab = len(unique_lats)
+     print("Number of slabs points after cleanup = ",str(npts_slab))
+     print("   lat_indices: ",lati)
+     print("   lon_indices: ",loni)
 
      # Create PDF/CDFs of IVT (cool-season (ONDJFM) only). 
      if (not debug):
