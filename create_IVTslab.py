@@ -13,9 +13,9 @@ def closest(arry, K):
      return (np.abs(arry - K)).argmin()
 
 ##########################################################################################
-debug    = True
+debug    = False
 doPlot   = True
-showPlot = True
+showPlot = False
 ##########################################################################################
 
 # Where are the CMIP6 IVT files to process?
@@ -122,8 +122,6 @@ for ifile in range(0,nfiles):
      lati    = np.empty((npts_slab),       dtype='int')
      latiu   = np.empty((npts_slab),       dtype='int')
      IVTslab = np.empty((ntime,npts_slab), dtype='float')
-     PDFslab = np.empty((npts_slab,nbins), dtype='float')
-     CDFslab = np.empty((npts_slab,nbins), dtype='float')
      for islab in range(0,npts_slab):
           loni[islab]  = closest(data.lon.values, lon_slab[islab])
           lati[islab]  = closest(data.lat.values, lat_slab[islab])
@@ -166,9 +164,12 @@ for ifile in range(0,nfiles):
 
      # Create PDF/CDFs of IVT (cool-season (ONDJFM) only). 
      if (not debug):
-          p, bins = np.histogram(IVTslab[cool_season,islab], bins=nbins, range=ivtRange)
-          CDFslab[islab,:] = np.cumsum(p)/np.sum(p)
-          PDFslab[islab,:] = p
+          PDFslab = np.empty((npts_slab,nbins), dtype='float')
+          CDFslab = np.empty((npts_slab,nbins), dtype='float')
+          for islab in range(0,npts_slab):
+               p, bins = np.histogram(IVTslab[cool_season,islab], bins=nbins, range=ivtRange)
+               CDFslab[islab,:] = np.cumsum(p)/np.sum(p)
+               PDFslab[islab,:] = p
 
      # Create output file
      if (not debug):
