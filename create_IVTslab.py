@@ -15,7 +15,7 @@ def closest(arry, K):
 ##########################################################################################
 debug    = True
 doPlot   = True
-showPlot = False
+showPlot = True
 ##########################################################################################
 
 # Where are the CMIP6 IVT files to process?
@@ -54,7 +54,8 @@ lat_slab = np.array([ 50.00, 49.00, 48.00, 47.00, 46.00, 45.00, 44.00, \
 #                      36.00, 35.00, 34.00, 33.00, 32.00, 31.00, 30.00 ],dtype='float')
 
 # Where to store output files?
-dirOUT = "/Projects/HydroMet/mhughes/CMIP6IVTdataout/slabs/"+caseID+"/"
+dirOUT = "/Projects/HydroMet/dswales/CMIP6/slabs/"+caseID+"/"
+#dirOUT = "/Projects/HydroMet/mhughes/CMIP6IVTdataout/slabs/"+caseID+"/"
 if(not os.path.isdir(dirOUT)): os.mkdir(dirOUT)
 
 # IVT PDF configuration. (Written to output slab file)
@@ -88,7 +89,7 @@ for ifile in range(0,nfiles):
      nlat  = data.lat.size
      ntime = data.time.size
 
-     # Search for landmask file
+     # Search for lanSdmask file
      found_lsmask_file = False
      for file_lsmsk in lsmsk_file_list:
           if modelname in file_lsmsk:
@@ -119,6 +120,7 @@ for ifile in range(0,nfiles):
      loni    = np.empty((npts_slab),       dtype='int')
      loniu   = np.empty((npts_slab),       dtype='int')
      lati    = np.empty((npts_slab),       dtype='int')
+     latiu   = np.empty((npts_slab),       dtype='int')
      IVTslab = np.empty((ntime,npts_slab), dtype='float')
      PDFslab = np.empty((npts_slab,nbins), dtype='float')
      CDFslab = np.empty((npts_slab,nbins), dtype='float')
@@ -126,26 +128,41 @@ for ifile in range(0,nfiles):
           loni[islab]  = closest(data.lon.values, lon_slab[islab])
           lati[islab]  = closest(data.lat.values, lat_slab[islab])
           loniu[islab] = loni[islab]
+          latiu[islab] = lati[islab]
           # Check to ensure that slab-point is over ocean, if no then nudge west.
           lsmsk_local = lsmsk[closest(lat_lsmsk,lat_slab[islab]),closest(lon_lsmsk,lon_slab[islab])]
           if (lsmsk_local > 50):
                print("------------------------------------------------------------------------------------------")
-               print("WARNING: The closest "+modelname+" grid-point is mostly over land. Moving West...")
+               print("WARNING(1): The closest "+modelname+" grid-point is mostly over land. Moving West...")
                print("Land-fraction = ",lsmsk_local)
                print("Latitude      = ",data.lat[closest(data.lat.values,lat_slab[islab])].values)
                print("Longitude     = ",data.lon[closest(data.lon.values,lon_slab[islab])].values)
+               print("------------------------------------------------------------------------------------------")
                loni[islab] = loni[islab]-1
-          
+          # Extract IVT for slab point.
           IVTslab[:,islab] = data["IVT"][0:ntime, lati[islab], loni[islab]].values
-          # Add check/warning for cases when the provided slab has redundant points (e.g. in
-          # the case when the slab requested is on a finer grid than the CMIP6 data)
-          if (debug):
-               for itest in range(0,islab):
-                    if (loni[islab] == loni[itest] and lati[islab] == lati[itest]):
-                         print("------------------------------------------------------------------------------------------")
-                         print("WARNING: Redundant slab points have been found.")
-                         print("Current slab index: "+str(islab)+" is identical to previous slab index: "+str(itest))
-                         print("["+str(data.lon[loni[islab]].values)+","+str(data.lat[lati[islab]].values)+"]")
+
+     # Sanitize the slab (Remove excessive points, filter by latitude uniqueness)
+     unique_lats  = np.array([lati[0]], dtype='int')
+     unique_latsi = np.array([0],       dtype='int')
+     subset_slab = False
+     for islab in range(1,npts_slab):
+          if lati[islab] not in unique_lats:
+               unique_lats  = np.append(unique_lats,lati[islab])
+               unique_latsi = np.append(unique_latsi,islab)
+          else:
+               subset_slab = True
+               si = np.where(lati[islab] == unique_lats)[0]
+               print("------------------------------------------------------------------------------------------")
+               print("WARNING(2): Redundant slab points have been found. Removing from slab..." )
+               print("Slab index: "+str(islab)+" has the same latitude as: "+str(si[0]))
+               print("[" + str(data.lat[lati[islab]].values) + "][" + str(data.lat[unique_lats[si[0]]].values) + "]")
+               print("------------------------------------------------------------------------------------------")
+     if subset_slab:
+          loni      = loni[unique_latsi]
+          lati      = lati[unique_latsi]
+          IVTslab   = IVTslab[:,unique_latsi]
+          npts_slab = len(unique_lats)
 
      # Create PDF/CDFs of IVT (cool-season (ONDJFM) only). 
      if (not debug):
@@ -178,11 +195,11 @@ for ifile in range(0,nfiles):
           plotOUT = dirOUT+"plots/slab."+modelname+".png"
           print("Slab domain plot: ",plotOUT)
           fig=plt.figure(figsize=(8, 6))
-          m = Basemap(llcrnrlon=-130.,llcrnrlat=20.,urcrnrlon=-110.,urcrnrlat=52.)#,projection='merc')
+          m = Basemap(llcrnrlon=-130.,llcrnrlat=20.,urcrnrlon=-110.,urcrnrlat=52.)
           m.drawcoastlines()
           m.drawcountries()
           m.drawstates()
-          x,y = m(data.lon[loniu].values-360,data.lat[lati].values)
+          x,y = m(data.lon[loniu].values-360,data.lat[latiu].values)
           m.plot(x,y, 'ro', markersize=4)
           x,y = m(data.lon[loni].values-360,data.lat[lati].values)
           m.plot(x,y, 'bo', markersize=4)
