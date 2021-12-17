@@ -67,8 +67,7 @@ ivtRange  = [0,1500] # (kg/m/s)
 ##########################################################################################
 
 # Number of slab points to extract
-npts_slab = len(lat_slab)
-if (npts_slab != len(lon_slab)):
+if (len(lat_slab) != len(lon_slab)):
      print("ERROR: Slab lon/lat size are inconsistent.")
      exit()
 
@@ -88,6 +87,7 @@ for ifile in range(0,nfiles):
      nlon  = data.lon.size
      nlat  = data.lat.size
      ntime = data.time.size
+     npts_slab = len(lat_slab)
 
      # Search for lanSdmask file
      found_lsmask_file = False
