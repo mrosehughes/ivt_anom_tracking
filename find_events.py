@@ -145,11 +145,15 @@ for file in file_list:
              month_start_OUT = xr.Dataset({"month_start":(("event"), event_month_begin)})
              month_end_OUT   = xr.Dataset({"month_end":  (("event"), event_month_end)})
              day_start_OUT   = xr.Dataset({"day_start":  (("event"), event_day_begin)})
-             day_end_OUT     = xr.Dataset( {"day_end":    (("event"), event_day_end)})
+             day_end_OUT     = xr.Dataset({"day_end":    (("event"), event_day_end)})
              hour_start_OUT  = xr.Dataset({"hour_start": (("event"), event_hour_begin)})
              hour_end_OUT    = xr.Dataset({"hour_end":   (("event"), event_hour_end)})
+             model_OUT       = xr.Dataset({"model":      modelname})
+             scenario_OUT    = xr.Dataset({"scenario":   scenario})
+             ptile_OUT       = xr.Dataset({"percentile": ptile})
              xr.merge([year_start_OUT, year_end_OUT, month_start_OUT, month_end_OUT, \
-                       day_start_OUT,  day_end_OUT,  hour_start_OUT,  hour_end_OUT]).to_netcdf(fileOUT)
+                       day_start_OUT,  day_end_OUT,  hour_start_OUT,  hour_end_OUT,\
+                       model_OUT, scenario_OUT, ptile_OUT]).to_netcdf(fileOUT)
 
              if (print_diag):
                  print("------------------------------------------------------------")
