@@ -7,7 +7,7 @@ import xarray as xr
 import matplotlib.pyplot as plt
 ########################################################################################## 
 ########################################################################################## 
-debug      = True#False
+debug      = False
 print_diag = True#False
 dohist     = True
 
@@ -17,12 +17,17 @@ dirIN = "/Projects/HydroMet/dswales/CMIP6/slabs/slabtest1/"
 # What is the model's temporal resolution? (in hours)
 timestep = 3
 
-#
+# Output location?
+caseID = "slabtest1"
+dirOUT = "/Projects/HydroMet/dswales/CMIP6/events/"+caseID+"/"
+if(not os.path.isdir(dirOUT)): os.mkdir(dirOUT)
+
+##########################################################################################
 # Event detection configuration
-#
+##########################################################################################
 
 # Which percentile (strength) for IVT anomaly?
-ptiles = [.90,.91,.92]
+ptiles = np.linspace(.80,.99,20)
 
 # How long (duration) does IVT anomaly persist along coast(slb)? (in hours)
 persistences = [24,36]
@@ -48,7 +53,12 @@ if (dohist):
     file_list = file_list_hist
 else:
     file_list = file_list_future
-if debug: file_list = [file_list[0]]
+
+if debug:
+    print("IN DEBUG MODE")
+    file_list    = [file_list[0]]
+    ptiles       = [0.95]
+    persistences = [24]
     
 # Process each file...
 for file in file_list:
@@ -125,9 +135,23 @@ for file in file_list:
                      # Reset flags.
                      flag1        = False
                      event_length = 0
-                     
+
+             # Write to output
+             modelname = str(file)[0:file.find('_IVT')]
+             scenario  = str(file)[file.find('IWV_')+4:file.find('.nc')]
+             fileOUT   = dirOUT+"events."+modelname+"."+scenario+".p"+str(int(ptile*100)).zfill(2)+".d"+str(persistence).zfill(2)+".nc"
+             year_start_OUT  = xr.Dataset({"year_start": (("event"), event_year_begin)})
+             year_end_OUT    = xr.Dataset({"year_end":   (("event"), event_year_end)})
+             month_start_OUT = xr.Dataset({"month_start":(("event"), event_month_begin)})
+             month_end_OUT   = xr.Dataset({"month_end":  (("event"), event_month_end)})
+             day_start_OUT   = xr.Dataset({"day_start":  (("event"), event_day_begin)})
+             day_end_OUT     = xr.Dataset( {"day_end":    (("event"), event_day_end)})
+             hour_start_OUT  = xr.Dataset({"hour_start": (("event"), event_hour_begin)})
+             hour_end_OUT    = xr.Dataset({"hour_end":   (("event"), event_hour_end)})
+             xr.merge([year_start_OUT, year_end_OUT, month_start_OUT, month_end_OUT, \
+                       day_start_OUT,  day_end_OUT,  hour_start_OUT,  hour_end_OUT]).to_netcdf(fileOUT)
+
              if (print_diag):
-                 modelname = str(file)[0:file.find('_IVT')]
                  print("------------------------------------------------------------")
                  print("Model:            ",modelname)
                  print("Input slab file:  ",dirIN+file)
@@ -136,6 +160,7 @@ for file in file_list:
                  print("   Percentile:    ",str(ptile*100.))
                  print("   Duration:      ",str(persistence))
                  print("   # of events:   ",nevents)
+                 print("Output written to ",fileOUT )
                  #for ievent in range(0,nevents-1):
                  #    print("       "+\
                  #          str(event_year_begin[ievent]).zfill(4)  + "/"   + \
