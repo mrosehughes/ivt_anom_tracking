@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 ########################################################################################## 
 debug      = False
 print_diag = True#False
-dohist     = True
+dohist     = False
 
 # Slab loaction
 dirIN = "/Projects/HydroMet/dswales/CMIP6/slabs/slabtest1/"
@@ -47,7 +47,7 @@ file_list_hist   = []
 for files in os.listdir(dirIN):
     if files.endswith("historical.nc"):
         file_list_hist.append(files)
-    else:
+    elif files.endswith(".nc"):
         file_list_future.append(files)
 if (dohist):
     file_list = file_list_hist
