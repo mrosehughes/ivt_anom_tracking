@@ -40,19 +40,20 @@ for file in sorted(os.listdir(dirIN)):
         dataset  = xr.open_dataset(dirIN+file)
         model    = np.append(model,str(dataset.model.values))
         scenario = np.append(scenario,str(dataset.scenario.values))
-        ptile    = np.append(ptile,float(dataset.percentile.values))
+        ptile    = np.append(ptile,float(dataset.percentile.values)*100.)
         nevent   = np.append(nevent,dataset.dims["event"])
-        print(model[count].ljust(20),scenario[count].ljust(12),str(int(ptile[count]*100)).zfill(2).ljust(12),nevent[count])
+        print(model[count].ljust(20),scenario[count].ljust(12),str(int(ptile[count])).zfill(2).ljust(12),nevent[count])
         count = count + 1
+print("-----------------------------------------------------")
 
 # Plot configuration
 xrange = [min(ptile), max(ptile)]
-yrange = [0,40]
+yrange = [0,max(nevent)/30.]
 
 # Plot
-fig = plt.figure(figsize=(8,6))
+fig = plt.figure(figsize=(10,8))
 plotOUT = dirOUT+"event_stats.p"+str(persistence)+"."+scn+".png"
-print(plotOUT)
+print("Output file: ",plotOUT)
 #
 # Historical
 #
@@ -60,10 +61,28 @@ plt.subplot(2,1,1)
 for imodel in models:
     mi = np.where((imodel == model) & ('historical' == scenario))[0]
     plt.plot(ptile[mi],nevent[mi]/30.)
-plt.xlabel("Strength (percentile)")
 plt.ylabel("Events/Season (#)")
 plt.ylim(yrange)
 plt.xlim(xrange)
+plt.xticks(color='w')
+plt.title("Historical")
+plt.legend(models,loc='lower left',fontsize='xx-small')
+
+#
+# Future - Historical
+#
+plt.subplot(2,1,2)
+for imodel in models:
+    mih = np.where((imodel == model) & ('historical' == scenario))[0]
+    mif = np.where((imodel == model) & (scn == scenario))[0]
+    if (np.any(mif)):
+        plt.plot(ptile[mif],(nevent[mif]-nevent[mih])/30.)
+plt.plot(xrange,[0,0],color='grey',linestyle='dotted')
+plt.xlabel("Strength (percentile)")
+plt.ylabel("Events/Season (#)")
+plt.title("Future("+scn+") - Historical")
+plt.xlim(xrange)
+plt.ylim([-3,3])
 plt.savefig(plotOUT)
 plt.show()
 
