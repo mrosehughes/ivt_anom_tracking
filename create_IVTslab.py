@@ -24,17 +24,10 @@ lsmsk_dir = "/Projects/HydroMet/mhughes/CMIP6IVTdataout/landmasks/"
 
 # Use all of the files.
 files  = os.listdir(data_dir)
-#if (debug): files = [files[0]]
-nfiles = len(files)
-
-# ID for slab configuration? (to create output file directory)
-#caseID = 'slabtest0'
-# What are the lon/lats for the slab?
-#lon_slab = np.array([233.00, 234.25, 235.50, 235.50, 235.50, 235.50, 235.50 ],dtype='float')
-#lat_slab = np.array([ 50.00,  48.75,  46.25,  45.50,  44.50,  43.25,  42.00 ],dtype='float')
 
 # ID for slab configuration? (to create output file directory)
 caseID = 'slabtest1' #extend south and start moving east
+
 # What are the lon/lats for the slab?
 lon_slab = np.array([232.00, 234.25, 235.50, 235.50, 235.50, 235.50, 235.50,\
                      235.50, 235.50, 235.50, 235.50, 236.00, 236.00, 236.50,\
@@ -42,16 +35,6 @@ lon_slab = np.array([232.00, 234.25, 235.50, 235.50, 235.50, 235.50, 235.50,\
 lat_slab = np.array([ 50.00, 49.00, 48.00, 47.00, 46.00, 45.00, 44.00, \
                       43.00, 42.00, 41.00, 40.00, 39.00, 38.00, 37.00, \
                       36.00, 35.00, 34.00, 33.00, 32.00, 31.00, 30.00 ],dtype='float')
-
-# ID for slab configuration? (to create output file directory)
-#caseID = 'slabtest2' #extend south and start moving east
-# What are the lon/lats for the slab?
-#lon_slab = np.array([232.00, 234.25, 235.50, 235.50, 235.50, 235.50, 235.50,\
-#                     235.50, 235.50, 235.50, 235.50, 236.00, 236.00, 236.50,\
-#                     237.00, 237.50, 238.00, 238.50, 239.00, 239.50, 240.00],dtype='float')
-#lat_slab = np.array([ 50.00, 49.00, 48.00, 47.00, 46.00, 45.00, 44.00, \
-#                      43.00, 42.00, 41.00, 40.00, 39.00, 38.00, 37.00, \
-#                      36.00, 35.00, 34.00, 33.00, 32.00, 31.00, 30.00 ],dtype='float')
 
 # Where to store output files?
 dirOUT = "/Projects/HydroMet/dswales/CMIP6/slabs/"+caseID+"/"
@@ -78,12 +61,12 @@ for lsmskfiles in os.listdir(lsmsk_dir):
           lsmsk_file_list.append(lsmskfiles)
      
 # Process each file
-for ifile in range(0,nfiles):
-     print("CMIP6 file:       ",data_dir+files[ifile])
-     modelname = str(files[ifile])[0:files[ifile].find('_IVT')]
+for file in files:
+     print("CMIP6 file:       ",data_dir+file)
+     modelname = str(file)[0:file.find('_IVT')]
      
      # Load CMIP6 data
-     data  = xr.open_dataset(data_dir+files[ifile])
+     data  = xr.open_dataset(data_dir+file)
      nlon  = data.lon.size
      nlat  = data.lat.size
      ntime = data.time.size
@@ -179,7 +162,7 @@ for ifile in range(0,nfiles):
 
      # Create output file
      if (not debug):
-          fileOUT = dirOUT+files[ifile]
+          fileOUT = dirOUT+file
           print("Output slab file: ",fileOUT)
           ivtOUT = xr.Dataset({"IVT": (("time", "slab"),IVTslab)},  \
                               coords = {"time": data.time.values,\
