@@ -45,6 +45,10 @@ if(not os.path.isdir(dirOUT)): os.mkdir(dirOUT)
 nbins     = 150
 ivtRange  = [0,1500] # (kg/m/s)
 
+# Which years to use for historical/future epochs?
+yearsH = [1980,2010]
+yearsF = [2070,2100]
+
 ##########################################################################################
 # NO CHANGES NEEDED BELOW
 ##########################################################################################
@@ -64,9 +68,14 @@ for lsmskfiles in os.listdir(lsmsk_dir):
 for file in files:
      print("CMIP6 file:       ",data_dir+file)
      modelname = str(file)[0:file.find('_IVT')]
-     
+     if file.endswith("historical.nc"):
+          years = yearsH
+     else:
+          years = yearsF
+
      # Load CMIP6 data
-     data  = xr.open_dataset(data_dir+file)
+     ds    = xr.open_dataset(data_dir+file)
+     data  = ds.sel(time=slice(str(years[0]), str(years[1])))
      nlon  = data.lon.size
      nlat  = data.lat.size
      ntime = data.time.size
