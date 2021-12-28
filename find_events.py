@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 ########################################################################################## 
 debug      = False
 print_diag = True#False
-dohist     = False
+dohist     = True
 
 # Slab loaction
 dirIN = "/Projects/HydroMet/dswales/CMIP6/slabs/slabtest1/"
@@ -37,7 +37,11 @@ if (dohist):
     years = [1980,2010]
 else:
     years = [2070,2100]
-    
+
+# Use only spoecific months of the year? (all this does is stop detection at the end of the
+#  cool-season and restart it at the beginning.)
+month = [1,2,3,10,11,12]
+
 ##########################################################################################
 # NO CHANGES NEEDED BELOW
 ##########################################################################################
@@ -73,6 +77,7 @@ for file in file_list:
      lon    = data.lon.values
      npts   = data.lat.size
      ntimes = data.time.size
+     months = data.time.dt.month.values
      
      #####################################################################################
      # BEGIN EVENT DETECTION
@@ -99,29 +104,50 @@ for file in file_list:
              event_day_end     = []
              event_hour_end    = []
              for itime in range(0,ntimes):
-                 # Is there an instantaneous-event anywhere across the slab?
-                 if (np.any(inst_evt_msk[:,itime])):
-                     # Average location of anomaly (not used)
-                     xi   = np.where(inst_evt_msk[:,itime])
-                     lati = np.mean(lat[xi])
-                     loni = np.mean(lon[xi])
-
-                     # Is this the first instantaneous-event detected? (If so, save index)
-                     if (event_length == 0): event_start = itime
-
-                     # How long have we been in this event?
-                     event_length = event_length + timestep
-
-                     # Have we observed subsequent instantaeous events long enough to satisfy
-                     # the requested persistence threshold?
-                     if (event_length >= persistence):
-                         flag1      = True
-                         event_stop = itime
                  #
-                 # If not in an event...
+                 # Is the current month to be included in the anomaly detection?
                  #
+                 if months[itime] == np.any(month):
+                     #
+                     # Is there an instantaneous IVT-event anywhere across the slab at current timestep?
+                     #
+                     if (np.any(inst_evt_msk[:,itime])):
+                         # Average location of anomaly (not used)
+                         xi   = np.where(inst_evt_msk[:,itime])
+                         lati = np.mean(lat[xi])
+                         loni = np.mean(lon[xi])
+
+                         # Is this the first instantaneous-event detected? (If so, save index)
+                         if (event_length == 0): event_start = itime
+
+                         # How long have we been in this event?
+                         event_length = event_length + timestep
+
+                         # Have we observed subsequent instantaeous events long enough to satisfy
+                         # the requested persistence threshold?
+                         if (event_length >= persistence):
+                             flag1      = True
+                             event_stop = itime
+                     #
+                     # No IVT anonaly detected at current timestep...
+                     #
+                     else:
+                         # If just exited event, save information for last event timestep
+                         if (flag1):
+                             nevents = nevents + 1
+                             event_year_begin.append( data.time.dt.year[ event_start].values)
+                             event_month_begin.append(data.time.dt.month[event_start].values)
+                             event_day_begin.append(  data.time.dt.day[  event_start].values)
+                             event_hour_begin.append( data.time.dt.hour[ event_start].values)
+                             event_year_end.append(  data.time.dt.year[  event_stop].values)
+                             event_month_end.append( data.time.dt.month[ event_stop].values)
+                             event_day_end.append(   data.time.dt.day[   event_stop].values)
+                             event_hour_end.append(  data.time.dt.hour[  event_stop].values)
+                         # Reset flags.
+                         flag1        = False
+                         event_length = 0
                  else:
-                     # If just exited event, save information
+                     # If by chance an event was occuring at the end of the cool-season cutoff
                      if (flag1):
                          nevents = nevents + 1
                          event_year_begin.append( data.time.dt.year[ event_start].values)
