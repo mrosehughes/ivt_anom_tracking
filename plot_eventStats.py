@@ -6,6 +6,9 @@ import numpy as np
 import xarray as xr
 import matplotlib.pyplot as plt
 
+# Print event statistics?
+doPrint = False
+
 # Where is event data?
 caseID = "slabtest1"
 dirIN  = "/Projects/HydroMet/dswales/CMIP6/events/"+caseID+"/"
@@ -14,11 +17,14 @@ dirIN  = "/Projects/HydroMet/dswales/CMIP6/events/"+caseID+"/"
 persistence = 24
 
 # Which models to include?
+# All models
 models = ["ACCESS-ESM1-5","CMCC-CM2-SR5","CMCC-ESM2","CanESM5","CNRM-CM6-1","CNRM-ESM2-1",\
           "HadGEM3-GC31-LL","MPI-ESM-1-2-HAM","MPI-ESM1-2-HR","MPI-ESM1-2-LR","UKESM1-0-LL"]
+# Models with both historical/future data available
+models = ["CMCC-CM2-SR5","CMCC-ESM2","CanESM5","MPI-ESM1-2-LR"]
 
 # Which future scenario to use?
-scn = "ssp126"
+scn = "ssp370"#"ssp245"#"ssp126"#"ssp585"
 
 # Where to store plots?
 dirOUT = dirIN+"plots/"
@@ -31,9 +37,9 @@ scenario  = np.array([],dtype='str')
 nevent    = np.array([],dtype='int') 
 ptile     = np.array([],dtype='float')
 count     = 0
-print("-----------------------------------------------------")
-print("MODEL                SCENARIO     PERCENTILE   EVENTS")
-print("-----------------------------------------------------")
+if doPrint: print("-----------------------------------------------------")
+if doPrint: print("MODEL                SCENARIO     PERCENTILE   EVENTS")
+if doPrint: print("-----------------------------------------------------")
 for file in sorted(os.listdir(dirIN)):
     if file.endswith(str(persistence)+".nc"):
         file_list.append(file)
@@ -42,9 +48,9 @@ for file in sorted(os.listdir(dirIN)):
         scenario = np.append(scenario,str(dataset.scenario.values))
         ptile    = np.append(ptile,float(dataset.percentile.values)*100.)
         nevent   = np.append(nevent,dataset.dims["event"])
-        print(model[count].ljust(20),scenario[count].ljust(12),str(int(ptile[count])).zfill(2).ljust(12),nevent[count])
+        if doPrint: print(model[count].ljust(20),scenario[count].ljust(12),str(int(ptile[count])).zfill(2).ljust(12),nevent[count])
         count = count + 1
-print("-----------------------------------------------------")
+if doPrint: print("-----------------------------------------------------")
 
 # Plot configuration
 xrange = [min(ptile), max(ptile)]
@@ -76,7 +82,8 @@ for imodel in models:
     mih = np.where((imodel == model) & ('historical' == scenario))[0]
     mif = np.where((imodel == model) & (scn == scenario))[0]
     if (np.any(mif)):
-        plt.plot(ptile[mif],(nevent[mif]-nevent[mih])/30.)
+        if len(mif) == len(mih):
+            plt.plot(ptile[mif],(nevent[mif]-nevent[mih])/30.)
 plt.plot(xrange,[0,0],color='grey',linestyle='dotted')
 plt.xlabel("Strength (percentile)")
 plt.ylabel("Events/Season (#)")
