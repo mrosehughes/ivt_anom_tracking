@@ -95,7 +95,7 @@ for file in sorted(os.listdir(dirIN)):
                 #
                 # Is the current month to be included in the anomaly detection?
                 #
-                if months[itime] == np.any(month):
+                if np.any(months[itime] == month):
                     #
                     # Is there an instantaneous IVT-event anywhere across the slab at current timestep?
                     #
