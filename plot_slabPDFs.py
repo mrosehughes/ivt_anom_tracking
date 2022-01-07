@@ -5,6 +5,7 @@ import os
 import numpy as np
 import xarray as xr
 import matplotlib.pyplot as plt
+import matplotlib.cm as cm
 from mpl_toolkits.basemap import Basemap
 
 showPlot = False
@@ -18,13 +19,14 @@ dirIN = "/Projects/HydroMet/dswales/CMIP6/slabs/slabtest1/"
 
 # Where to store plots?
 caseID = 'slabtest1'
-dirOUT = "/Projects/HydroMet/dswales/CMIP6/slabs/"+caseID+"/"
+#dirOUT = "/Projects/HydroMet/dswales/CMIP6/slabs/"+caseID+"/"
+dirOUT = "/Projects/HydroMet/mhughes/CMIP6IVTdataout/slabs/"+caseID+"/"
 
 # Axis range for plots
 xrange = [0,500]
 
 # Increase to remove number of points in PDFs
-slab_stride = 2
+slab_stride = 1
 
 ##########################################################################################
 # NO CHANGES BELOW
@@ -99,9 +101,14 @@ for model in models_w_future:
         print("PDF plot: ",plotOUT)
         fig=plt.figure(figsize=(8, 6))
         #
+        #MRH try to specify colors of lines from a colormap
+        evenly_spaced_interval = np.linspace(0, 1, npts_h) 
+        colors = [cm.rainbow(x) for x in evenly_spaced_interval]
+
         plt.subplot(3, 1, 1)
         for slab in range(0,npts_h,slab_stride):
-            plt.plot(bins_h, 100.*pdf_h[int(slab),:]/np.sum(pdf_h[int(slab),:]))
+            color = colors[slab]
+            plt.plot(bins_h, 100.*pdf_h[int(slab),:]/np.sum(pdf_h[int(slab),:]), color = color)
         plt.xlabel("IVT (kg/m/s)")
         plt.ylabel("Frequency (%)")
         plt.ylim([0,8])
@@ -109,17 +116,19 @@ for model in models_w_future:
         #
         plt.subplot(3, 1, 2)
         for slab in range(0,npts_f,slab_stride):
-            plt.plot(bins_f, 100.*pdf_f[int(slab),:]/np.sum(pdf_f[int(slab),:]))
+            color = colors[slab]
+            plt.plot(bins_f, 100.*pdf_f[int(slab),:]/np.sum(pdf_f[int(slab),:]), color = color)
         plt.xlabel("IVT (kg/m/s)")
         plt.ylabel("Frequency (%)")
         plt.ylim([0,8])
         plt.xlim(xrange)
         #
         plt.subplot(3, 1, 3)
-        plt.plot([0,1e5],[0,0])
+        plt.plot([0,1e5],[0,0], color = 'k')
         for slab in range(0,npts_h,slab_stride):
+            color = colors[slab]
             plt.plot(bins_h, 100.*((pdf_f[int(slab),:]/np.sum(pdf_f[int(slab),:])) - \
-                                   (pdf_h[int(slab),:]/np.sum(pdf_h[int(slab),:]))))
+                                   (pdf_h[int(slab),:]/np.sum(pdf_h[int(slab),:]))), color = color)
         plt.xlabel("IVT (kg/m/s)")
         plt.ylabel("Frequency (%)")
         plt.ylim([-2,2])
