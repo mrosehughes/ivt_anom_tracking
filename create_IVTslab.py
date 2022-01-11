@@ -5,6 +5,7 @@ import os
 import numpy as np
 import xarray as xr
 import matplotlib.pyplot as plt
+import matplotlib.cm as cm
 from mpl_toolkits.basemap import Basemap
 ##########################################################################################
 # Routine to search array (arry) for closet value to K, returns index.
@@ -26,19 +27,50 @@ lsmsk_dir = "/Projects/HydroMet/mhughes/CMIP6IVTdataout/landmasks/"
 files  = os.listdir(data_dir)
 
 # ID for slab configuration? (to create output file directory)
-caseID = 'slabtest1' #extend south and start moving east
+#caseID = 'slabtestsouth' #extend south and start moving east
 
 # What are the lon/lats for the slab?
-lon_slab = np.array([232.00, 234.25, 235.50, 235.50, 235.50, 235.50, 235.50,\
+#lon_slab = np.array([235.50, 235.50, 235.50, 235.50, 236.00, 236.00, 236.50,\
+#                     237.00, 238.00, 239.00, 240.00, 241.00, 242.00, 243.00],dtype='float')
+#lat_slab = np.array([ 43.00, 42.00, 41.00, 40.00, 39.00, 38.00, 37.00, \
+#                      36.00, 35.00, 34.00, 33.00, 32.00, 31.00, 30.00 ],dtype='float')
+
+# ID for slab configuration? (to create output file directory)
+#caseID = 'slabtest1' #extend south and start moving east
+
+# What are the lon/lats for the slab?
+#lon_slab = np.array([232.00, 234.25, 235.50, 235.50, 235.50, 235.50, 235.50,\
+#                     235.50, 235.50, 235.50, 235.50, 236.00, 236.00, 236.50,\
+#                     237.00, 238.00, 239.00, 240.00, 241.00, 242.00, 243.00],dtype='float')
+#lat_slab = np.array([ 50.00, 49.00, 48.00, 47.00, 46.00, 45.00, 44.00, \
+#                      43.00, 42.00, 41.00, 40.00, 39.00, 38.00, 37.00, \
+#                      36.00, 35.00, 34.00, 33.00, 32.00, 31.00, 30.00 ],dtype='float')
+
+# ID for slab configuration? (to create output file directory)
+#caseID = 'slabtestnorth' #extend south and start moving east
+
+# What are the lon/lats for the slab?
+#lon_slab = np.array([228.00, 229.00, 229.00, 230.00, 230.00, 231.00, 231.00,\
+#                     232.00, 234.25, 235.50, 235.50, 235.50, 235.50, 235.50],dtype='float')
+#lat_slab = np.array([ 57.00, 56.00, 55.00, 54.00, 53.00, 52.00, 51.00, \
+#                      50.00, 49.00, 48.00, 47.00, 46.00, 45.00, 44.00],dtype='float')
+
+# ID for slab configuration? (to create output file directory)
+caseID = 'slabtestall' #extend south and start moving east
+
+# What are the lon/lats for the slab?
+lon_slab = np.array([228.00, 229.00, 229.00, 230.00, 230.00, 231.00, 231.00,\
+                     232.00, 234.25, 235.50, 235.50, 235.50, 235.50, 235.50,\
                      235.50, 235.50, 235.50, 235.50, 236.00, 236.00, 236.50,\
                      237.00, 238.00, 239.00, 240.00, 241.00, 242.00, 243.00],dtype='float')
-lat_slab = np.array([ 50.00, 49.00, 48.00, 47.00, 46.00, 45.00, 44.00, \
+lat_slab = np.array([ 57.00, 56.00, 55.00, 54.00, 53.00, 52.00, 51.00, \
+                      50.00, 49.00, 48.00, 47.00, 46.00, 45.00, 44.00, \
                       43.00, 42.00, 41.00, 40.00, 39.00, 38.00, 37.00, \
                       36.00, 35.00, 34.00, 33.00, 32.00, 31.00, 30.00 ],dtype='float')
 
 # Where to store output files?
-dirOUT = "/Projects/HydroMet/dswales/CMIP6/slabs/"+caseID+"/"
-#dirOUT = "/Projects/HydroMet/mhughes/CMIP6IVTdataout/slabs/"+caseID+"/"
+#dirOUT = "/Projects/HydroMet/dswales/CMIP6/slabs/"+caseID+"/"
+dirOUT = "/Projects/HydroMet/mhughes/CMIP6IVTdataout/slabs/"+caseID+"/"
 if(not os.path.isdir(dirOUT)): os.mkdir(dirOUT)
 
 # IVT PDF configuration. (Written to output slab file)
@@ -191,16 +223,27 @@ for file in files:
      # Plot the locations of the slabs on map?
      if (doPlot):
           if(not os.path.isdir(dirOUT+"plots/")): os.mkdir(dirOUT+"plots/")
+          #MRH try to specify colors of lines from a colormap
+          evenly_spaced_interval = np.linspace(0, 1, npts_slab)
+          colors = [cm.rainbow(x) for x in evenly_spaced_interval]
+          #print("colors: ", colors)
           plotOUT = dirOUT+"plots/slab."+modelname+".png"
           print("Slab domain plot: ",plotOUT)
           fig=plt.figure(figsize=(8, 6))
-          m = Basemap(llcrnrlon=-130.,llcrnrlat=20.,urcrnrlon=-110.,urcrnrlat=52.)
+          #m = Basemap(llcrnrlon=-130.,llcrnrlat=20.,urcrnrlon=-110.,urcrnrlat=52.)
+          m = Basemap(llcrnrlon=-135.,llcrnrlat=20.,urcrnrlon=-110.,urcrnrlat=58.)
           m.drawcoastlines()
           m.drawcountries()
           m.drawstates()
           x,y = m(data.lon[loniu].values-360,data.lat[latiu].values)
-          m.plot(x,y, 'ro', markersize=4)
+          m.plot(x,y, 'ro', markersize=4, markerfacecolor='none')
           x,y = m(data.lon[loni].values-360,data.lat[lati].values)
-          m.plot(x,y, 'bo', markersize=4)
+          #m.plot(x,y, color='blue', marker='o', markersize=4, linestyle='none')
+          for i in range(npts_slab):
+              color = colors[i]
+              #print("color: ",color)
+              m.plot(x[i],y[i], color=color, marker='o', markersize=4, linestyle='none')
+          #m.plot(x,y, color='blue', marker='o', markersize=4, linestyle='none')
+          #m.plot(x,y, 'bo', markersize=4)
           plt.savefig(plotOUT)
           if (showPlot): plt.show()
