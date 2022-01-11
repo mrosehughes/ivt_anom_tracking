@@ -14,11 +14,12 @@ verbose  = True
 # Which future scenario(s) to plot?
 scn_req = ["ssp126","ssp245","ssp370","ssp585"]
 
-# Where are the slab files?
-dirIN = "/Projects/HydroMet/dswales/CMIP6/slabs/slabtest1/"
-
 # Where to store plots?
-caseID = 'slabtest1'
+caseID = 'slabtestnorth'
+
+# Where are the slab files?
+#dirIN = "/Projects/HydroMet/dswales/CMIP6/slabs/"+caseID+"/"
+dirIN = "/Projects/HydroMet/mhughes/CMIP6IVTdataout/slabs/"+caseID+"/"
 #dirOUT = "/Projects/HydroMet/dswales/CMIP6/slabs/"+caseID+"/"
 dirOUT = "/Projects/HydroMet/mhughes/CMIP6IVTdataout/slabs/"+caseID+"/"
 
