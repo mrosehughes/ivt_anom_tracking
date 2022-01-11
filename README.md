@@ -5,3 +5,4 @@ find_events.py      - Finds all events for all CMIP6 slabs. Provide range of eve
                       and event duration (persistences).
 plot_eventStats.py  - Plots PDFs of all CMIP6 slabs.
 plot_slabPDFs.py    - Plots event-statistics for all CMIP6 models.
+##NOTE MRH I think the above two are swapped -- plot_slabPDFs plots PDFs... 
